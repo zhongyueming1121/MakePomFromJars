@@ -37,4 +37,33 @@ success jar:158 --> not find groupId:4
 fail jar:3
 
 Process finished with exit code 0
-`
+```
+
+输出的依赖文件
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+
+<dependencys>
+  <dependency>
+    <groupId>org.apache.activemq</groupId>
+    <artifactId>activemq-all</artifactId>
+    <version>5.5.1</version>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.activemq</groupId>
+    <artifactId>activemq-pool</artifactId>
+    <version>5.5.1</version>
+  </dependency>
+  <dependency>
+    <groupId>org.glassfish.external</groupId>
+    <artifactId>antlr</artifactId>
+    <version>2.7.7</version>
+  </dependency>
+  <dependency>
+    <groupId>org.kie.modules</groupId>
+    <artifactId>aopalliance</artifactId>
+    <version>6.5.0.Final</version>
+  </dependency>
+</dependencys>
+```
