@@ -1,0 +1,2 @@
+# MakePomFromJars
+重构老项目时，将非maven项目中lib下的jar自动转换成pom
