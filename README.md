@@ -1,8 +1,9 @@
 # MakePomFromJars
 重构老项目时，将非maven项目中lib下的jar自动转换成pom
 
-项目从非maven升级到maven项目,lib下一堆jar包需要整理，非常痛苦，
+项目从非maven升级到maven项目，lib下一堆jar包需要整理，非常痛苦，
 这个工具可以非常方便的转换大多数jar为pom依赖
+剩下的工作就是慢慢解决冲突了:)
 
 
 ```java
