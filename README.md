@@ -4,15 +4,16 @@
 项目从非maven升级到maven项目,lib下一堆jar包需要整理，非常痛苦，
 这个工具可以非常方便的转换大多数jar为pom依赖
 
-`
+
+```java
     //需生成pom文件的 lib路径
     private static final String libPath = "E:/MakePomFromJar/src/main/resources/lib";
     // 输出文件 
     private static final String outFilePath = "E:/output.txt";
-`
-**输出**
+```
+输出
 
-`
+```shell
 .................................................
 ..................................................
 ..................................................
