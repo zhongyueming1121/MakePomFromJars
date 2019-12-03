@@ -14,10 +14,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * 将非maven项目中的jar转换成pom
@@ -37,7 +37,10 @@ public class MakePomFromJars {
     public static void main(String[] args) {
         List<String> failJar = new ArrayList<>();
         List<String> notFindGroupIdJar = new ArrayList<>();
+        List<Map<String, String>> propertiesList = new ArrayList<>();
+        Element project = new DOMElement("project");
         Element dependencys = new DOMElement("dependencys");
+        Element properties = new DOMElement("properties");
         File dir = new File(libPath);
         File[] files = dir.listFiles();
         int i = 0;
@@ -45,8 +48,8 @@ public class MakePomFromJars {
         int notGroupId = 0;
         assert files != null;
         for (File jar : files) {
-            i++;
             try {
+                i++;
                 JarInputStream jis = new JarInputStream(new FileInputStream(jar));
                 Manifest manifest = jis.getManifest();
                 jis.close();
@@ -55,7 +58,7 @@ public class MakePomFromJars {
                 Element ele = null;
                 if (bundleName != null) {
                     bundleName = bundleName.toLowerCase().replace(" ", "-");
-                    ele = getDecencies(bundleName, bundleVersion);
+                    ele = getDecencies(bundleName, bundleVersion, propertiesList);
                 }
                 if (ele == null || ele.elements().size() == 0) {
                     bundleName = "";
@@ -74,13 +77,17 @@ public class MakePomFromJars {
                     if (bundleName.endsWith("-")) {
                         bundleName = bundleName.substring(0, bundleName.length() - 1);
                     }
-                    ele = getDecencies(bundleName, bundleVersion);
+                    ele = getDecencies(bundleName, bundleVersion, propertiesList);
                 }
                 if (ele.elements().size() == 0) {
-                    ele.add(new DOMElement("groupId").addText("NotFindGroupId"));
                     notGroupId++;
                     notFindGroupIdJar.add(jar.getName());
-                    ele.add(new DOMElement("artifactId").addText(bundleName));
+                    String artifactStr = bundleName.replaceAll("-", ".") + ".version";
+                    HashMap<String, String> map = new HashMap<>(1);
+                    map.put(artifactStr, bundleVersion);
+                    propertiesList.add(map);
+                    ele.add(new DOMElement("groupId").addText("NotFindGroupId"));
+                    ele.add(new DOMElement("artifactId").addText("${" + artifactStr + "}"));
                     ele.add(new DOMElement("version").addText(bundleVersion));
                 }
                 dependencys.add(ele);
@@ -93,6 +100,12 @@ public class MakePomFromJars {
             }
             System.out.print(".");
         }
+        propertiesList = propertiesList.stream().sorted(Comparator.comparing(Object::toString)).collect(Collectors.toList());
+        propertiesList.forEach(v -> v.forEach((key, val) -> {
+            Element version = new DOMElement(key);
+            version.addText(val);
+            properties.add(version);
+        }));
         if (!failJar.isEmpty()) {
             System.out.println();
             System.out.println();
@@ -111,6 +124,7 @@ public class MakePomFromJars {
             }
             System.out.println("--------------------------------------------");
         }
+        System.out.println();
         System.out.println("total jar:" + files.length);
         System.out.print("success jar:" + success);
         if (notGroupId > 0) {
@@ -119,11 +133,12 @@ public class MakePomFromJars {
             System.out.println();
         }
         System.out.println("fail jar:" + failJar.size());
-        formatXml(dependencys.asXML());
-
+        project.add(properties);
+        project.add(dependencys);
+        formatXml(project.asXML());
     }
 
-    private static Element getDecencies(String key, String ver) {
+    private static Element getDecencies(String key, String ver, List<Map<String, String>> propertiesList) {
         Element dependency = new DOMElement("dependency");
         try {
             String url = "http://search.maven.org/solrsearch/select?q=a%3A%22" + key + "%22%20AND%20v%3A%22" + ver + "%22&rows=3&wt=json";
@@ -137,7 +152,12 @@ public class MakePomFromJars {
                 Element version = new DOMElement("version");
                 groupId.addText(docJson.getString("g"));
                 artifactId.addText(docJson.getString("a"));
-                version.addText(docJson.getString("v"));
+                String artifactStr = docJson.getString("a");
+                artifactStr = artifactStr.replaceAll("-", ".") + ".version";
+                HashMap<String, String> map = new HashMap<>(1);
+                map.put(artifactStr, docJson.getString("v"));
+                propertiesList.add(map);
+                version.addText("${" + artifactStr + "}");
                 dependency.add(groupId);
                 dependency.add(artifactId);
                 dependency.add(version);
