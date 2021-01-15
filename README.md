@@ -7,7 +7,7 @@
 剩下的工作就是慢慢解决冲突了 :)
 
 2019/12/4 增加了版本号抽出到properties标签下统一管理
-
+2021/1/15 增加一个不抽离版本号的方法，实际使用发现抽离版本号不好用
 ```java
     //需生成pom文件的 lib路径
     private static final String libPath = "E:/MakePomFromJar/src/main/resources/lib";
